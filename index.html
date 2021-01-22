@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=2" name="viewport">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="./dist/index.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            var BASE_URL_BETA = "https://beta.360medics.com"
+            var MY_CLIENT_KEY = "abcdefg"
+            var connect = new Connect(BASE_URL_BETA, MY_CLIENT_KEY)
+
+            
+            if (connect.userAuthorizationValid()) {
+
+                // user profile can now be accessed with this token
+                var token = connect.getToken()
+                document.getElementById("show-login").style.display = "none"
+
+                // use the token to get the user profile with infos that he has accepted to share (can be just an ID (anonymous))
+                connect.getUser().then(function(user) {
+                        console.log(user)
+                        document.getElementById("show-user").innerText = "Bienvenue "+user.name
+                }).catch(function(error) {
+                    // show error in your UI
+                    console.log(error)
+                })
+
+            } else {
+
+                // show a link to the 360medics login URL and authorization form
+                document.getElementById("show-login").style.display = "block"
+                document.getElementById("login-link").href = connect.getLoginUrl()
+            }
+            
+        })
+    </script>
+</head>
+<body>
+    <div class="container">
+        <p>Third party partner Page</p>
+
+        <p id="show-login">
+            <a id="login-link" href="">Login with 360medics</a>
+        </p>
+
+        <p id="show-user">
+            
+        </p>
+        <!--<login-button></login-button>-->
+        </div>
+</body>
+</html>
