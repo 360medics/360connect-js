@@ -6,49 +6,80 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <script src="./dist/index.js"></script>
     <script>
+        /**
+         * Init the connect SDK with your client key
+         * ideally, clientKey should not be stored in JS, but in variable environments
+         */
+        var BASE_URL_BETA = "https://beta.360medics.com"
+        var MY_CLIENT_KEY = "g678ndf56787a5ee63dc4sdfj68nd"
+        var connect = new Connect(BASE_URL_BETA, MY_CLIENT_KEY)
+
+        /**
+         * these functions should be replace by your own handling
+         * of your UI: what you do on load, login or logout depends on your app
+         */
+        function onLoadUpdateUI() {
+            document.getElementById("if-logged-out").style.display = "block"
+            document.getElementById("if-logged-in").style.display = "none"
+            document.getElementById("login-link").href = connect.getLoginUrl()
+        }
+        function onLoginSuccessUpdateUI(email) {
+            document.getElementById("if-logged-out").style.display = "none"
+            document.getElementById("if-logged-in").style.display = "block"
+            document.getElementById("hello").innerText = "Hello " + email
+            document.getElementById("revoke-link").addEventListener('click', function (e) {
+                e.preventDefault()
+                connect.userRevokeAuthorization(connect.getUserToken())
+                    .then(() => {
+                        onLoadUpdateUI()
+                    })
+            })
+        }
+        function onErrorUpdateUI(errorStr) {
+            document.getElementById("if-error").innerText = errorStr
+        }
+
+        // once the page is ready, setup things, init the connect client and show links
+        // depending on your app state (user logged in or not, etc.)
         document.addEventListener("DOMContentLoaded", (event) => {
-            var BASE_URL_BETA = "https://beta.360medics.com"
-            var MY_CLIENT_KEY = "abcdefg"
-            var connect = new Connect(BASE_URL_BETA, MY_CLIENT_KEY)
-
             
+            // show the base state of the UI (user not logged in)
+            onLoadUpdateUI()
+
+            // wait for the user token sent back by the authorization form
+            // one the user has accepted the 1st time, or when he has accepted already
+            //and logged in at another time
             if (connect.userAuthorizationValid()) {
+                var token = connect.getUserToken()
 
-                // user profile can now be accessed with this token
-                var token = connect.getToken()
-                document.getElementById("show-login").style.display = "none"
-
-                // use the token to get the user profile with infos that he has accepted to share (can be just an ID (anonymous))
-                connect.getUser().then(function(user) {
-                        console.log(user)
-                        document.getElementById("show-user").innerText = "Bienvenue "+user.name
-                }).catch(function(error) {
-                    // show error in your UI
-                    console.log(error)
+                // get user details and update or create a link
+                // with 360 user and yours in your database
+                connect.getUser().then(function (user) {
+                    // show user details: if the user only authorized an anonymous connection
+                    // you will only get back a user id and a token (and a junk email)
+                    onLoginSuccessUpdateUI(user.email)
+                }).catch(e => {
+                    console.log(e)
+                    onErrorUpdateUI("Invalid user token")
                 })
-
-            } else {
-
-                // show a link to the 360medics login URL and authorization form
-                document.getElementById("show-login").style.display = "block"
-                document.getElementById("login-link").href = connect.getLoginUrl()
             }
-            
         })
     </script>
 </head>
 <body>
     <div class="container">
-        <p>Third party partner Page</p>
+        <p>Third party partner Page (Proanet)</p>
 
-        <p id="show-login">
+        <div id="if-logged-out">
             <a id="login-link" href="">Login with 360medics</a>
-        </p>
-
-        <p id="show-user">
-            
-        </p>
-        <!--<login-button></login-button>-->
         </div>
+        
+        <div id="if-logged-in">
+            <p id="hello"></p><br>
+            <a id="revoke-link" href="">Revoke user authorization (for test)</a>
+        </div>
+
+        <div id="if-error"></div>
+    </div>
 </body>
 </html>

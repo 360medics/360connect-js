@@ -14,7 +14,18 @@ var Connect = /** @class */ (function () {
         this.$token = this.getParam('token');
         return (this.$token !== null);
     };
-    Connect.prototype.getToken = function () {
+    Connect.prototype.userRevokeAuthorization = function (token) {
+        var url = this.$baseUrl + "/connect/user/delete-token?clientKey=" + this.$clientKey + "&token=" + token;
+        return new Promise(function (resolve, reject) {
+            axios.get(url)
+                .then(function (r) {
+                resolve(null);
+            }).catch(function (e) {
+                reject(e);
+            });
+        });
+    };
+    Connect.prototype.getUserToken = function () {
         return this.$token;
     };
     Connect.prototype.getUser = function () {

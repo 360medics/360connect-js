@@ -27,7 +27,21 @@ class Connect
         return (this.$token !== null)
     }
 
-    getToken() {
+    userRevokeAuthorization(token: string)
+    {
+        const url = `${this.$baseUrl}/connect/user/delete-token?clientKey=${this.$clientKey}&token=${token}`
+        
+        return new Promise((resolve, reject) => {
+            axios.get(url)
+                .then(r => {
+                    resolve(null)
+                }).catch(e => {
+                    reject(e)
+                })
+        })
+    }
+
+    getUserToken() {
         return this.$token
     }
     
